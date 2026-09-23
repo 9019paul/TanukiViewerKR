@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Tanuki Viewer KR v0.6.0</title>
+  <link rel="icon" href="./assets/ui/tanuki-icon.png" type="image/png" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="./assets/ui/tanuki-loader.gif" alt="" class="brand-mark" />
+      <div>
+        <strong>Tanuki Viewer KR</strong>
+        <span>v0.6.0 · Local Starter Kit · Auto Update</span>
+      </div>
+    </div>
+    <label class="global-search" aria-label="전체 검색">
+      <span aria-hidden="true">⌕</span>
+      <input id="globalSearch" type="search" placeholder="캐릭터 · 일본어 파일명 · 태그 검색" disabled />
+      <kbd>/</kbd>
+    </label>
+    <div class="top-actions">
+      <button id="openFolderBtn" class="button primary" type="button">스타터 키트 열기</button>
+      <button id="updateBtn" class="button update-button" type="button">업데이트 확인</button>
+      <button id="exportBtn" class="button" type="button" disabled>메타데이터 JSON</button>
+      <button id="themeBtn" class="icon-button" type="button" title="테마 전환" aria-label="테마 전환">◐</button>
+    </div>
+    <input id="folderInput" type="file" webkitdirectory directory multiple hidden accept="image/gif,image/png,image/webp,.gif,.png,.webp" />
+  </header>
+
+  <div id="scanBar" class="scanbar" hidden>
+    <div><strong id="scanText">폴더를 읽는 중…</strong><span id="scanSub">0 / 0</span></div>
+    <progress id="scanProgress" value="0" max="100"></progress>
+  </div>
+
+  <main class="app-shell" id="appShell">
+    <aside class="sidebar left-panel">
+      <div class="panel-head">
+        <div>
+          <span class="eyebrow">LIBRARY</span>
+          <h2>소재 탐색</h2>
+        </div>
+        <span id="librarySummary" class="muted">폴더 미선택</span>
+      </div>
+
+      <nav id="categoryTabs" class="category-tabs" aria-label="카테고리">
+        <button data-category="playable" class="active" type="button">플레이어블 <span>0</span></button>
+        <button data-category="official-unreleased" type="button">공식 미실장 <span>0</span></button>
+        <button data-category="npc" type="button">NPC·관계자 <span>0</span></button>
+        <button data-category="parts" type="button">소품·파츠 <span>0</span></button>
+        <button data-category="other" type="button">기타·환각 <span>0</span></button>
+        <button data-category="background" type="button">배경 <span>0</span></button>
+      </nav>
+
+      <label class="side-search">
+        <span>캐릭터/폴더 검색</span>
+        <input id="itemSearch" type="search" placeholder="예: 테이오, トウカイテイオー" disabled />
+      </label>
+
+      <div class="list-toolbar">
+        <strong id="itemCount">0개 항목</strong>
+        <button id="clearItemSearch" class="text-button" type="button" disabled>검색 초기화</button>
+      </div>
+
+      <div id="itemList" class="item-list" role="list"></div>
+      <div id="itemEmpty" class="side-empty">스타터 키트 폴더를 선택하면 목록이 표시됩니다.</div>
+    </aside>
+
+    <section class="viewer-panel">
+      <div class="viewer-toolbar">
+        <div class="breadcrumbs" id="breadcrumbs">모든 소재</div>
+        <div class="viewer-actions">
+          <button id="fitBtn" class="mini-button active" type="button">맞춤</button>
+          <button id="actualBtn" class="mini-button" type="button">원본 크기</button>
+          <button id="gridBtn" class="mini-button" type="button" disabled>▦ 전체 소재</button>
+          <button id="inspectorBtn" class="mini-button inspector-toggle" type="button" aria-expanded="false">필터·정보</button>
+        </div>
+      </div>
+
+      <div id="stage" class="stage checkerboard">
+        <div id="welcome" class="welcome-card">
+          <img src="./assets/ui/tanuki-loader.gif" alt="타누키" />
+          <h1>스타터 키트를 로컬에서 열어보세요</h1>
+          <p>GIF/PNG/WebP 파일은 업로드되지 않습니다. 선택한 폴더를 이 브라우저 세션에서만 읽어 뷰어를 구성합니다.</p>
+          <button id="welcomeOpenBtn" class="button primary large" type="button">타누키 1차베이스 폴더 선택</button>
+          <small>압축을 먼저 풀고 최상위 <b>타누키 1차베이스</b> 폴더를 선택하세요.</small>
+        </div>
+        <div id="loadingState" class="image-loading" hidden>
+          <img src="./assets/ui/tanuki-loader.gif" alt="" />
+          <span>이미지를 불러오는 중…</span>
+        </div>
+        <div id="emptyState" class="viewer-empty" hidden>
+          <strong>조건에 맞는 소재가 없습니다.</strong>
+          <span>필터를 초기화하거나 다른 캐릭터를 선택해보세요.</span>
+        </div>
+        <img id="assetImage" class="asset-image" alt="" hidden />
+      </div>
+
+      <div class="asset-head">
+        <div class="asset-title-block">
+          <span id="categoryBadge" class="badge">-</span>
+          <div class="asset-title-row">
+            <h1 id="assetTitle">소재를 선택하세요</h1>
+            <button id="editDisplayNameBtn" class="text-button rename-button" type="button" disabled>표시명 수정</button>
+          </div>
+          <p id="assetSub" class="muted">-</p>
+        </div>
+        <a id="downloadBtn" class="button primary download-button disabled" href="#" download aria-disabled="true">원본 다운로드</a>
+      </div>
+
+      <div class="navigator">
+        <button id="prevBtn" type="button" disabled>← 이전</button>
+        <strong id="assetCounter">0 / 0</strong>
+        <button id="nextBtn" type="button" disabled>다음 →</button>
+      </div>
+
+      <div class="thumb-section">
+        <div class="thumb-head">
+          <span>빠른 탐색</span>
+          <span id="thumbHint" class="muted">현재 필터 결과 0개</span>
+        </div>
+        <div id="thumbStrip" class="thumb-strip"></div>
+      </div>
+    </section>
+
+    <aside class="sidebar right-panel">
+      <section class="inspector-section filter-section">
+        <div class="section-title-row">
+          <div>
+            <span class="eyebrow">FILTERS</span>
+            <h2>소재 필터</h2>
+          </div>
+          <button id="resetFiltersBtn" class="text-button" type="button" disabled>초기화</button>
+        </div>
+        <div id="filters" class="filters"></div>
+      </section>
+
+      <section class="inspector-section">
+        <span class="eyebrow">ASSET INFO</span>
+        <h2>소재 정보</h2>
+        <dl id="assetInfo" class="info-grid">
+          <dt>캐릭터</dt><dd id="infoCharacter">-</dd>
+          <dt>분류</dt><dd id="infoCategory">-</dd>
+          <dt>시리즈</dt><dd id="infoCollection">-</dd>
+          <dt>동작</dt><dd id="infoAction">-</dd>
+          <dt>방향</dt><dd id="infoDirection">-</dd>
+          <dt>표정</dt><dd id="infoExpression">-</dd>
+          <dt>소품</dt><dd id="infoProps">-</dd>
+          <dt>형식</dt><dd id="infoFormat">-</dd>
+          <dt>해상도</dt><dd id="infoResolution">-</dd>
+          <dt>파일 크기</dt><dd id="infoSize">-</dd>
+          <dt>검수</dt><dd id="infoReview">-</dd>
+        </dl>
+      </section>
+
+      <section class="inspector-section">
+        <span class="eyebrow">ORIGINAL</span>
+        <h2>원본 정보</h2>
+        <div class="path-block">
+          <span>원본 파일명</span>
+          <code id="originalFilename">-</code>
+        </div>
+        <div class="path-block">
+          <span>상대 경로</span>
+          <code id="relativePath">-</code>
+        </div>
+        <div id="tagList" class="tag-list"></div>
+      </section>
+    </aside>
+  </main>
+
+  <dialog id="assetDialog" class="asset-dialog">
+    <div class="dialog-shell">
+      <header class="dialog-head">
+        <div>
+          <span class="eyebrow">ASSET BROWSER</span>
+          <h2 id="dialogTitle">전체 소재</h2>
+          <p id="dialogCount" class="muted">0개</p>
+        </div>
+        <button id="closeDialogBtn" class="icon-button" type="button" aria-label="닫기">✕</button>
+      </header>
+      <div id="assetGrid" class="asset-grid"></div>
+      <footer class="dialog-footer">
+        <button id="gridPrev" class="button" type="button">← 이전 페이지</button>
+        <strong id="gridPage">1 / 1</strong>
+        <button id="gridNext" class="button" type="button">다음 페이지 →</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="./js/catalog.js"></script>
+  <script src="./js/parser.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
