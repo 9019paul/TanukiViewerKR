@@ -1,0 +1,3 @@
+# Cumulative update set since the v0.6.0 baseline.
+# When a release changes a program file, add its relative path below and keep it here
+# until the next full baseline installer is published.
