@@ -1,0 +1,7 @@
+{
+  "schema": "tanuki-viewer-update/v1",
+  "version": "0.6.0",
+  "publishedAt": "2026-09-23T13:45:00Z",
+  "notes": "v0.6.0 baseline: viewer bug fixes, automatic asset numbering, editable display names, GitHub auto update.",
+  "files": []
+}
